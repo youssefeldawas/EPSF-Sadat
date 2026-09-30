@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+    <!-- Chosen Palette: Medical Navy (#0A2540), Cyan/Sky Blue (#0284C7), Teal Accent (#0D9488), Light Slate Background (#F8FAFC) -->
+    <!-- Application Structure Plan:
+        1. Hero Header & Banner: Dynamic headline, core motto, interactive key achievement badges, and primary navigation buttons.
+        2. Impact Dashboard & Data Visualizations: Dynamic KPI metrics (blood donations, medical convoy patients, international hosting, events count) + Chart.js dynamic charts for 5-year growth and committee effort distribution.
+        3. Interactive Timeline & Yearly Chapters: Tabbed timeline explorer for each term (2019-2020 through 2023-2024) displaying story background, presidency details, major achievements, and team members.
+        4. Leadership Directory & Board Archive: Filterable and searchable dynamic cards for all founding and consecutive board members across 5 terms.
+        5. Interactive E-Book Reader: Full-text reading mode with interactive chapter outline, text size adjuster, print-ready feature, and highlight cards.
+        WHY: Converts the textual history and stats into an engaging, interactive digital museum and archive for current and future members.
+    -->
+    <!-- Visualization & Content Choices:
+        - Growth Trend -> Line Chart (Chart.js Canvas) -> Shows activity growth over 5 terms.
+        - Committee Focus -> Doughnut Chart (Chart.js Canvas) -> Visual breakdown of committee contributions.
+        - Impact Metrics -> Bar Chart (Chart.js Canvas) -> Quantitative breakdown of medical and community reach.
+        - Board Directory -> Interactive HTML/JS Grid + Real-time Search & Term Filter.
+        - Confirming NO SVG used. NO Mermaid JS used. CSS dynamic styling & Unicode symbols applied.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رحلة الصمود والنجاح | الموقع التفاعلي لـ EPSF-Sadat (2019 - 2024)</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#0F172A',
+                            900: '#0A2540',
+                            950: '#051323',
+                        },
+                        medical: {
+                            50: '#F0F9FF',
+                            100: '#E0F2FE',
+                            500: '#0284C7',
+                            600: '#0369A1',
+                            700: '#075985',
+                        },
+                        tealAccent: '#0D9488',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #F8FAFC;
+            color: #0F172A;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* Responsive Chart Containers as specified */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0284C7;
+            border-radius: 4px;
+        }
+
+        .glass-header {
+            background: rgba(10, 37, 64, 0.95);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-medical-500 selection:text-white">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 glass-header text-white shadow-xl border-b border-medical-600/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo & Branding -->
+                <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="switchMainTab('dashboard')">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-medical-500 to-tealAccent flex items-center justify-center text-white font-black text-xl shadow-lg border border-white/20">
+                        EPSF
+                    </div>
+                    <div>
+                        <span class="text-xl font-black tracking-wide font-cairo block text-white">EPSF-Sadat</span>
+                        <span class="text-xs text-medical-100 font-medium">الأرشيف والمتحف الرقمي (2019 - 2024)</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex space-x-1 space-x-reverse bg-navy-950/80 p-1.5 rounded-2xl border border-white/10">
+                    <button onclick="switchMainTab('dashboard')" id="nav-dashboard" class="nav-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 bg-medical-500 text-white shadow">
+                        📊 لوحة الإنجازات
+                    </button>
+                    <button onclick="switchMainTab('timeline')" id="nav-timeline" class="nav-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-slate-300 hover:text-white hover:bg-white/10">
+                        ⏳ رحلة الأعوام
+                    </button>
+                    <button onclick="switchMainTab('board')" id="nav-board" class="nav-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-slate-300 hover:text-white hover:bg-white/10">
+                        👥 دليل هيئات المكتب
+                    </button>
+                    <button onclick="switchMainTab('ebook')" id="nav-ebook" class="nav-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-slate-300 hover:text-white hover:bg-white/10">
+                        📖 القارئ التفاعلي
+                    </button>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 focus:outline-none border border-white/10">
+                    <span class="text-xl font-bold">☰</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-navy-950 px-4 pt-2 pb-5 space-y-2 border-t border-white/10">
+            <button onclick="switchMainTab('dashboard'); toggleMobileMenu();" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold text-white bg-medical-500">
+                📊 لوحة الإنجازات والأرقام
+            </button>
+            <button onclick="switchMainTab('timeline'); toggleMobileMenu();" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold text-slate-300 hover:bg-white/10">
+                ⏳ رحلة الأعوام والتسلسل الزمني
+            </button>
+            <button onclick="switchMainTab('board'); toggleMobileMenu();" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold text-slate-300 hover:bg-white/10">
+                👥 دليل هيئات المكتب والقيادات
+            </button>
+            <button onclick="switchMainTab('ebook'); toggleMobileMenu();" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold text-slate-300 hover:bg-white/10">
+                📖 القارئ الرقمي للكتاب
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- HERO BANNER -->
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy-900 via-navy-800 to-medical-700 text-white p-6 sm:p-10 mb-8 shadow-2xl border border-white/10">
+            <div class="absolute -right-12 -bottom-12 w-80 h-80 bg-medical-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-12 -top-12 w-80 h-80 bg-tealAccent/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 max-w-3xl">
+                <div class="inline-flex items-center space-x-2 space-x-reverse bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full text-xs font-semibold text-medical-100 border border-white/20 mb-4">
+                    <span>📜 التوثيق التفاعلي المعتمد</span>
+                    <span>•</span>
+                    <span>5 أعوام من التأثير (2019 - 2024)</span>
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black font-cairo leading-tight mb-4 text-white">
+                    رحلة الصمود والنجاح
+                </h1>
+                <p class="text-slate-200 text-sm sm:text-base leading-relaxed font-light mb-6">
+                    المنصة التفاعلية الرسمية لاستكشاف تاريخ الاتحاد المصري لطلاب الصيدلة بجامعة مدينة السادات (EPSF-Sadat). استكشف التحديات، القرارات، والنتائج الميدانية التي صنعت هذا الكيان العظيم.
+                </p>
+                
+                <div class="p-4 rounded-2xl bg-white/10 backdrop-blur border border-white/15 text-medical-50 text-xs sm:text-sm font-medium italic border-r-4 border-r-tealAccent shadow-inner">
+                    "ألا تستسلم أبداً، فالقوانين والعقبات لم تخلق للوقوف أمامنا بل لتكسيرها."
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD & ANALYTICS -->
+        <section id="tab-dashboard" class="main-tab-content space-y-8">
+            
+            <!-- Section Intro -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-2xl font-bold font-cairo text-navy-900 mb-2">📊 ملخص الأثر بالأرقام والرسوم البيانية</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    يعرض هذا القسم تحليلاً بالأرقام لأهم المخرجات والإنجازات التي حققتها الجمعية عبر دوراتها الخمس المتتالية. توضح البيانات أدناه النمو المتسارع والانتقال من العضوية تحت التدريب عام 2019 وحتى استضافة الطلاب الدوليين والمؤتمرات الكبرى بحلول 2024.
+                </p>
+            </div>
+
+            <!-- KPI Metric Cards Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-medical-500 transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="text-3xl mb-2">🗓️️</div>
+                    <div class="text-3xl font-black font-cairo text-navy-900">5 أعوام</div>
+                    <div class="text-xs text-slate-500 font-semibold mt-1">مسيرة مستمرة من البناء والعطاء</div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-medical-500 transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="text-3xl mb-2">🩸</div>
+                    <div class="text-3xl font-black font-cairo text-medical-600">+150 كيس</div>
+                    <div class="text-xs text-slate-500 font-semibold mt-1">دم بجمع أول حملة تبرع بالدم 2019</div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-medical-500 transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="text-3xl mb-2">🩺</div>
+                    <div class="text-3xl font-black font-cairo text-tealAccent">316 حالة</div>
+                    <div class="text-xs text-slate-500 font-semibold mt-1">تمت معالجتها بالقافلة الطبية الثانية</div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-medical-500 transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="text-3xl mb-2">🌍</div>
+                    <div class="text-3xl font-black font-cairo text-navy-900">1st SEP</div>
+                    <div class="text-xs text-slate-500 font-semibold mt-1">أول استضافة دولية (طالبة الهند)</div>
+                </div>
+            </div>
+
+            <!-- Dynamic Interactive Visualizations -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Chart 1: 5-Year Event Growth -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold font-cairo text-navy-900">تطور حجم المبادرات والفعاليات (2019 - 2024)</h3>
+                            <p class="text-xs text-slate-500">مؤشر نمو الأنشطة والمشاركات الميدانية والأكاديمية</p>
+                        </div>
+                        <span class="text-xs bg-medical-50 text-medical-600 px-2.5 py-1 rounded-lg font-bold">نمو سنوي</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Committee Focus Distribution -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold font-cairo text-navy-900">توزيع مجالات العمل واللجان</h3>
+                            <p class="text-xs text-slate-500">نسب التركيز والتأثير الميداني والأكاديمي</p>
+                        </div>
+                        <span class="text-xs bg-teal-50 text-teal-700 px-2.5 py-1 rounded-lg font-bold">توزيع نسبي</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="committeeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quantitative Comparison Chart -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold font-cairo text-navy-900">مقاييس الأثر المجتمعي والأكاديمي</h3>
+                        <p class="text-xs text-slate-500">أعداد المستفيدين من القوافل، التبرع بالدم، والشنط الرمضانية</p>
+                    </div>
+                </div>
+                <div class="chart-container" style="max-width: 900px;">
+                    <canvas id="impactBarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Key Milestones Snapshot -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-xl font-bold font-cairo text-navy-900 mb-4">🏆 أبرز 3 محطات فارقة في التاريخ</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-medical-600 mb-1">25 أغسطس 2019</div>
+                        <h4 class="font-bold text-slate-900 text-base mb-2">عضوية تحت التدريب</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">المؤتمر بالجامعة البريطانية واعتراف الاتحاد المصري بالجمعية كعضو رسم تحت التدريب بعد 3 سنوات محاولات.</p>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-tealAccent mb-1">عام 2022 - 2023</div>
+                        <h4 class="font-bold text-slate-900 text-base mb-2">بروتوكول النقابة والقوافل</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">توقيع بروتوكول تعاون رسم مع نقابة الصيادلة وانطلاق القافلة الطبية الأولى لقرية أم صابر وشنط كمشوش.</p>
+                    </div>
+
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-navy-900 mb-1">عام 2023 - 2024</div>
+                        <h4 class="font-bold text-slate-900 text-base mb-2">مؤتمر PHocus واليوبيل الخماسي</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">تنظيم أضخم مؤتمر برعاية الشركات الكبرى، الاستضافة الدولية الأولى (SEP)، والاحتفال بالذكرى الخماسية.</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 2: INTERACTIVE TIMELINE (CHAPTERS) -->
+        <section id="tab-timeline" class="main-tab-content hidden space-y-8">
+            
+            <!-- Section Intro -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-2xl font-bold font-cairo text-navy-900 mb-2">⏳ التسلسل الزمني وفصول الكيان</h2>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    استكشف كل عام دراسي وتجربته الخاصة. اختر العام للتعرف على كواليس تلك المرحلة، هيئة المكتب المسؤولة، وأبرز الإنجازات والتحديات التي تم تجاوزها.
+                </p>
+            </div>
+
+            <!-- Year Tabs Bar -->
+            <div class="flex overflow-x-auto space-x-2 space-x-reverse pb-2 scrollbar-none">
+                <button onclick="selectYearTab('y1')" id="yearBtn-y1" class="year-tab-btn flex-shrink-0 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all duration-200 bg-navy-900 text-white shadow-md">
+                    🌱 2019-2020: النواة الأولى
+                </button>
+                <button onclick="selectYearTab('y2')" id="yearBtn-y2" class="year-tab-btn flex-shrink-0 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+                    😷 2020-2021: التكيف (الجائحة)
+                </button>
+                <button onclick="selectYearTab('y3')" id="yearBtn-y3" class="year-tab-btn flex-shrink-0 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+                    ⚓ 2021-2022: الثبات والتوسع
+                </button>
+                <button onclick="selectYearTab('y4')" id="yearBtn-y4" class="year-tab-btn flex-shrink-0 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+                    🤝 2022-2023: التعاون المؤسسي
+                </button>
+                <button onclick="selectYearTab('y5')" id="yearBtn-y5" class="year-tab-btn flex-shrink-0 px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all duration-200 bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+                    ⚔️ 2023-2024: المعارك والانتصار
+                </button>
+            </div>
+
+            <!-- Timeline Year Detail Dynamic Container -->
+            <div id="yearDetailContent" class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 transition-all">
+                <!-- Injected via JavaScript -->
+            </div>
+
+        </section>
+
+        <!-- TAB 3: BOARD DIRECTORY -->
+        <section id="tab-board" class="main-tab-content hidden space-y-8">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold font-cairo text-navy-900 mb-1">👥 دليل قادة وهيئات المكتب (2019 - 2024)</h2>
+                        <p class="text-slate-600 text-sm">البحث والتصفية عبر جميع الأعضاء ورؤساء اللجان الذين تركوا أثراً في تاريخ EPSF-Sadat.</p>
+                    </div>
+                    <div>
+                        <input type="text" id="boardSearchInput" onkeyup="filterBoardMembers()" placeholder="ابحث باسم العضو أو اللجنة..." class="w-full md:w-72 px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-medical-500 shadow-sm">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Term Filter Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterBoardTerm('all')" class="term-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-navy-900 text-white shadow-sm">الكل (2019-2024)</button>
+                <button onclick="filterBoardTerm('2019-2020')" class="term-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">2019-2020</button>
+                <button onclick="filterBoardTerm('2020-2021')" class="term-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">2020-2021</button>
+                <button onclick="filterBoardTerm('2021-2022')" class="term-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">2021-2022</button>
+                <button onclick="filterBoardTerm('2022-2023')" class="term-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">2022-2023</button>
+                <button onclick="filterBoardTerm('2023-2024')" class="term-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">2023-2024</button>
+            </div>
+
+            <!-- Board Grid -->
+            <div id="boardGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Injected via JavaScript -->
+            </div>
+
+        </section>
+
+        <!-- TAB 4: FULL E-BOOK READER MODE -->
+        <section id="tab-ebook" class="main-tab-content hidden space-y-8">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold font-cairo text-navy-900">📖 القارئ الرقمي الشامل للكتاب</h2>
+                    <p class="text-slate-600 text-sm">تصفح النص الكامل لكتاب "رحلة الصمود والنجاح" بتنسيق مريح وقابل للتحكم.</p>
+                </div>
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <button onclick="changeEbookFontSize(1)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold border border-slate-200">خط أكبر A+</button>
+                    <button onclick="changeEbookFontSize(-1)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold border border-slate-200">خط أصغر A-</button>
+                    <button onclick="window.print()" class="px-4 py-2 bg-medical-500 hover:bg-medical-600 text-white rounded-xl text-xs font-bold shadow">🖨️ طباعة / حفظ PDF</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                
+                <!-- Chapter Table of Contents Sticky Sidebar -->
+                <div class="lg:col-span-1 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 h-fit sticky top-28">
+                    <h3 class="font-bold font-cairo text-navy-900 mb-3 border-b pb-2 text-sm">📑 فهرس فصول الكتاب</h3>
+                    <ul class="space-y-1 text-xs font-semibold">
+                        <li><a href="#reader-intro" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">المقدمة الكبرى: في العمل عبادة</a></li>
+                        <li><a href="#reader-ch1" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">الفصل الأول: النواة الأولى (2019-2020)</a></li>
+                        <li><a href="#reader-ch2" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">الفصل الثاني: عام التكيف (2020-2021)</a></li>
+                        <li><a href="#reader-ch3" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">الفصل الثالث: بر الأمان (2021-2022)</a></li>
+                        <li><a href="#reader-ch4" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">الفصل الرابع: التعاون المؤسسي (2022-2023)</a></li>
+                        <li><a href="#reader-ch5" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">الفصل الخامس: المعارك والانتصار (2023-2024)</a></li>
+                        <li><a href="#reader-outro" class="block p-2 rounded-xl hover:bg-medical-50 text-slate-700 hover:text-medical-600">الخاتمة: ومازالت الحكاية مستمرة</a></li>
+                    </ul>
+                </div>
+
+                <!-- Reader Text Column -->
+                <div class="lg:col-span-3 bg-white p-6 sm:p-10 rounded-3xl shadow-sm border border-slate-200 space-y-10" id="fullEbookReader" style="font-size: 16px;">
+                    
+                    <!-- Intro -->
+                    <div id="reader-intro" class="scroll-mt-28 border-b border-slate-100 pb-8">
+                        <span class="text-xs font-bold text-medical-600 bg-medical-50 px-3 py-1 rounded-full">المقدمة الكبرى</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold font-cairo text-navy-900 mt-3 mb-4">في العمل عبادة</h2>
+                        <div class="text-slate-700 leading-relaxed space-y-4">
+                            <p>
+                                في بداية الأمر، دعني استهل حديثي معك بأن في العمل روحاً، وأن متعة الروح لا تأتي إلا من صعوبة العمل ومن ثم لذة النجاح فيه. وفي النهاية، دعني أذكرك عزيزي القارئ أن في العمل عبادة.
+                            </p>
+                            <p>
+                                هذا المكان هو حكاية استمر البحث عنها على مدار ثلاث سنوات وأكثر؛ هو حصاد جهد لكثير من الأشخاص الذين آمنوا بالفكرة. وأهم ما ستستفيده من هذه السطور هو رسالة راسخة: <strong class="text-navy-900">ألا تستسلم أبداً، فالقوانين والعقبات لم تخلق للوقوف أمامنا بل لتكسيرها.</strong>
+                            </p>
+                            <p>
+                                هنا نروي قصة مكتب الاتحاد المصري لطلاب الصيدلة بجامعة مدينة السادات (EPSF-Sadat).
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Chapter 1 -->
+                    <div id="reader-ch1" class="scroll-mt-28 border-b border-slate-100 pb-8">
+                        <span class="text-xs font-bold text-tealAccent bg-teal-50 px-3 py-1 rounded-full">الفصل الأول (2019 - 2020م)</span>
+                        <h2 class="text-2xl font-bold font-cairo text-navy-900 mt-3 mb-4">النواة الأولى وحجر الأساس</h2>
+                        
+                        <h3 class="text-lg font-bold text-slate-900 mt-4 mb-2">البداية والفكرة</h3>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            لم تكن الفكرة وليدة اللحظة، بل كانت وليدة سنوات من المتابعة المستمرة لأحداث وفعاليات الاتحاد من قِبل <strong>سارة عزت البابلي</strong>، حتى سنحت لها الفرصة والتحقت بكلية الصيدلة جامعة مدينة السادات. وباعتبارهم أول دفعة في الكلية، كان الهدف واضحاً وضوح الشمس: <em>وضع علامة فارقة تستمر لمن يأتي بعدهم.</em>
+                        </p>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            بدأت سارة بالتواصل مع أصدقائها المقربين وعرضت عليهم الفكرة التي لقيت استحساناً واسعاً. تواصلت بعد ذلك مع مسؤول العلاقات الخارجية بالاتحاد المصري لطلاب الصيدلة، وتم الاتفاق على زيارة من فريق العلاقات الداخلية قام بها <strong>أحمد الخارجي</strong> في الربع الأخير لعام 2016. كانت زيارة في غاية الاحترافية والبشاشة وضعت الخطوات الأولى على الطريق، تلتها دورة تدريبية بمدينة الإسكندرية في إجازة العام الدراسي 2016/2017.
+                        </p>
+
+                        <h3 class="text-lg font-bold text-slate-900 mt-4 mb-2">شركاء النجاح والعقبات الكبرى</h3>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            لم يكن الطريق سهلاً، بل كان مملوءاً بالعقبات والتعنت أحياناً من الإدارة في السنوات الأولى (2016 - 2018)، ولكنه مع تغيير الإدارات وإصرار الأبطال (مثل عمر الشيخ وسارة البابلي ومحمد صلاح)، أثمر عن لحظة الانتصار الكبرى في <strong>25 أغسطس 2019 بالجامعة البريطانية</strong> لتصبح الجمعية عضواً تحت التدريب.
+                        </p>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border-r-4 border-medical-500 my-4 text-xs sm:text-sm">
+                            <strong class="block text-navy-900 text-sm mb-1">أبرز إنجازات الدفعة الأولى:</strong>
+                            <ul class="list-disc list-inside space-y-1 text-slate-600">
+                                <li>تصميم الشعار الأول ووضع اللائحة الداخلية للجمعية.</li>
+                                <li>تنظيم ريكروتمنت شامل مع الترويج والتعريف بالاتحاد.</li>
+                                <li>حملة التبرع بالدم المبهرة بجمع 150 كيس دم في 4 أيام.</li>
+                                <li>الفوز بالمركز الخامس جمهورية في فيديو Golden Egypt.</li>
+                                <li>تنظيم فعاليات Focus و Step التثقيفية والترفيهية.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Chapter 2 -->
+                    <div id="reader-ch2" class="scroll-mt-28 border-b border-slate-100 pb-8">
+                        <span class="text-xs font-bold text-medical-600 bg-medical-50 px-3 py-1 rounded-full">الفصل الثاني (2020 - 2021م)</span>
+                        <h2 class="text-2xl font-bold font-cairo text-navy-900 mt-3 mb-4">عام التكيف والاستمرار في ظل الجائحة</h2>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            كان هذا العام عاماً استثنائياً بكل المقاييس؛ فقد واجه جائحة كورونا التي اضطرت الجميع للتكيف والعمل من المنزل، ولكن الهدف ظل واضحاً: إعلاء كلمة الاتحاد وتخطي العقبات معاً لنصل ببر الأمان تحت قيادة <strong>ميار عليان</strong> ورئيس الأمين العام <strong>أحمد النعناعي</strong>.
+                        </p>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            تحققت في هذا العام إنجازات نوعية رغم الإغلاق: بناء علاقة قوية مع نقابة الصيادلة بالمنوفية وعقد الجمعية العمومية بمقر النقابة، تخصيص غرفة ورش عمل مستقلة للدعم اللوجيستي، وإطلاق برنامج "Techno Add" لتعليم المهارات البرمجية والمكتبية.
+                        </p>
+                    </div>
+
+                    <!-- Chapter 3 -->
+                    <div id="reader-ch3" class="scroll-mt-28 border-b border-slate-100 pb-8">
+                        <span class="text-xs font-bold text-tealAccent bg-teal-50 px-3 py-1 rounded-full">الفصل الثالث (2021 - 2022م)</span>
+                        <h2 class="text-2xl font-bold font-cairo text-navy-900 mt-3 mb-4">خطوات ثابتة نحو بر الأمان والثبات</h2>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            برئاسة <strong>أحمد النعناعي</strong> والأمين العام <strong>إيمان علاء الدين</strong>، شهد هذا العام ترسيخ أقدام الجمعية من خلال تنظيم فعاليات التبادل الطلابي المحلي، حملات البلازما، والتوسع بحملات التبرع بالدم في قرى المنوفية.
+                        </p>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            توج العام بالتكريم الكبير والاستعانة بفرق الاتحاد لتنظيم احتفال "يوم الصيدلي المنوفي" وتكريم الجمعية بدرع شكر رسمي من عميد الكلية.
+                        </p>
+                    </div>
+
+                    <!-- Chapter 4 -->
+                    <div id="reader-ch4" class="scroll-mt-28 border-b border-slate-100 pb-8">
+                        <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">الفصل الرابع (2022 - 2023م)</span>
+                        <h2 class="text-2xl font-bold font-cairo text-navy-900 mt-3 mb-4">أشياء لا تبدو كما نريدها والتعاون المؤسسي</h2>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            "تأتي الرياح بما لا تشتهي السفن".. لم تكن السنة خالية من التحديات، لكن فريق العمل برئاسة <strong>دينا داوود</strong> والأمين العام <strong>منال عاصم</strong> استطاعوا تحويل الصعوبات إلى إنجازات مؤسسية ضخمة.
+                        </p>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            تم توقيع بروتوكول تعاون رسمي مع نقابة الصيادلة بشبين الكوم، وإطلاق أول قافلة طبية متكاملة لقرية "أم صابر"، وتوزيع 120 شنطة رمضان بقرية "كمشوش"، علاوة على إطلاق مدونة Hoster وقناة اليوتيوب والأول Trailer لفعاليات الكيان.
+                        </p>
+                    </div>
+
+                    <!-- Chapter 5 -->
+                    <div id="reader-ch5" class="scroll-mt-28 border-b border-slate-100 pb-8">
+                        <span class="text-xs font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full">الفصل الخامس (2023 - 2024م)</span>
+                        <h2 class="text-2xl font-bold font-cairo text-navy-900 mt-3 mb-4">المعارك الكبرى والانتصار لأقوى الجنود</h2>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            "دائماً ما يُقال لا تُعطى أصعب المعارك إلا لأقوى الجنود".. برئاسة <strong>هادي محمد</strong> والأمين العام <strong>سعيد وحيد</strong>، كانت هذه السنة حافلة بالإنجازات التاريخية الممتدة.
+                        </p>
+                        <p class="text-slate-700 leading-relaxed mb-4">
+                            تم تنظيم مؤتمر Congress ومؤتمر PHocus الأسطوري برعاية أكبر الشركات، وإطلاق حدث "وعي" للصحة النفسية، والقافلة الطبية الثانية لـ 316 حالة، بالإضافة إلى أول استضافة دولية (SEP Hosting) لطالبة من الهند وتدريبها بمصنع Zeta Pharma، والاحتفال بالذكرى الخماسية لتأسيس الجمعية.
+                        </p>
+                    </div>
+
+                    <!-- Outro -->
+                    <div id="reader-outro" class="scroll-mt-28 bg-navy-900 text-white p-8 rounded-3xl text-center space-y-4 shadow-xl">
+                        <span class="text-4xl">✨</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold font-cairo">الخاتمة: ومازالت الحكاية مستمرة...</h2>
+                        <p class="text-slate-300 text-sm max-w-xl mx-auto leading-relaxed">
+                            هذه السطور لم تكن مجرد تواريخ وأسماء، بل هي نبضات قلوب آمنت بأن الصعوبات خلقت لتُكسر. من رمال البدايات عام 2019 وحتى قمم الإنجازات عام 2024، يظل EPSF-Sadat حكاية ملهمة لكل مَن مرّ بهذا المكان.
+                        </p>
+                        <div class="font-bold text-tealAccent text-lg pt-2">ومازالت الحكاية مستمرة... 💙</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-navy-950 text-slate-400 py-12 border-t border-white/10 mt-20 text-xs">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-4">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-gradient-to-tr from-medical-500 to-tealAccent flex items-center justify-center text-white font-black text-base shadow">
+                EPSF
+            </div>
+            <div class="text-white font-bold text-base font-cairo">الاتحاد المصري لطلاب الصيدلة - جامعة مدينة السادات (EPSF-Sadat)</div>
+            <p class="text-slate-400 max-w-md mx-auto leading-relaxed">المنصة والأرشيف الرقمي التفاعلي لتوثيق مسيرة الإنجازات والصمود (2019 - 2024م).</p>
+            <div class="text-slate-600 pt-4 border-t border-white/5">جميع الحقوق محفوظة © EPSF-Sadat 2024</div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // DATA STRUCTURES
+        const yearTimelineData = {
+            y1: {
+                title: "🌱 2019 - 2020: النواة الأولى وحجر الأساس",
+                motto: "وضع علامة فارقة تستمر لمن يأتي بعدهم",
+                president: "سارة عزت البابلي",
+                secretary: "عمر محمد الشيخ",
+                treasurer: "يارا راضي عامر",
+                summary: "تأطير اللائحة الأولى، الحصول على العضوية تحت التدريب في 25 أغسطس 2019 بالجامعة البريطانية، وتدشين حملة التبرع بالدم بجمع 150 كيس دم.",
+                highlights: [
+                    "الحصول على صفة عضو تحت التدريب (25 أغسطس 2019)",
+                    "جمع أكثر من 150 كيس دم في أول حملة رسمية (4 أيام)",
+                    "المركز الخامس على مستوى الجمهورية في فيديو Golden Egypt",
+                    "تنظيم حدث Focus و Step رغم ضغط اختبارات العملي"
+                ],
+                board: [
+                    { role: "الرئيس", name: "سارة عزت البابلي" },
+                    { role: "الأمين العام", name: "عمر محمد الشيخ" },
+                    { role: "أمين الصندوق", name: "يارا راضي عامر" },
+                    { role: "الصحة العامة", name: "ميار محمد عليان" },
+                    { role: "التعليم المستمر", name: "نرمين محمد أبو النجا" },
+                    { role: "التطوير المهني", name: "شيماء عبد الله" },
+                    { role: "التبادل الطلابي", name: "أسماء محمد رزق" },
+                    { role: "العلاقات الداخلية", name: "آلاء فتحي" },
+                    { role: "العلاقات الخارجية", name: "أميرة هيكل" },
+                    { role: "التسويق", name: "آية وليد" },
+                    { role: "الدعم اللوجيستي", name: "ريم السقا" },
+                    { role: "الإعلام والمطبوعات", name: "وفاء غنيم" }
+                ]
+            },
+            y2: {
+                title: "😷 2020 - 2021: عام التكيف والاستمرار في ظل الجائحة",
+                motto: "تخطي العقبات والتكيف مع العمل الرقمي",
+                president: "ميار عليان",
+                secretary: "أحمد النعناعي",
+                treasurer: "أسامة المصيلحي",
+                summary: "رغم ظروف كورونا والإغلاق، نجح الفريق في بناء شراكة مع نقابة المنوفية وإطلاق برنامج Techno Add وتعيين رئيسة الجمعية معيدة الكلية.",
+                highlights: [
+                    "عقد الجمعية العمومية النهائية في مقر نقابة صيادلة المنوفية",
+                    "الحصول على غرفة خاصة لورش عمل الدعم اللوجيستي",
+                    "تعيين الرئيسة (ميار عليان) معيدة بقسم المايكرو بالكلية",
+                    "إطلاق برنامج Techno Add لتعليم البرامج المكتبية والتقنية"
+                ],
+                board: [
+                    { role: "الرئيس", name: "ميار عليان" },
+                    { role: "الأمين العام", name: "أحمد النعناعي" },
+                    { role: "أمين الصندوق", name: "أسامة المصيلحي" },
+                    { role: "الصحة العامة", name: "عبد الرحمن الوكيل" },
+                    { role: "التعليم المستمر", name: "طه حمزة" },
+                    { role: "التطوير المهني", name: "ياسمين جمال" },
+                    { role: "التبادل الطلابي", name: "فاطمة البنداري" },
+                    { role: "العلاقات الداخلية", name: "ندى خضر" },
+                    { role: "العلاقات الخارجية", name: "معاذ محمد" },
+                    { role: "التسويق", name: "مادونا سامي" },
+                    { role: "الإعلام والمطبوعات", name: "كريم عبيد" },
+                    { role: "التنظيم واللوجيستي", name: "آية نافع" }
+                ]
+            },
+            y3: {
+                title: "⚓ 2021 - 2022: خطوات ثابتة نحو بر الأمان والثبات",
+                motto: "التوسع الميداني والترسيخ المؤسسي",
+                president: "أحمد النعناعي",
+                secretary: "إيمان علاء الدين",
+                treasurer: "سارة كركيت",
+                summary: "تأكيد مكانة الجمعية بالمشاركة الفعالة بمؤتمر خطوة على الطريق وتكريم الجمعية رسمياً بدرع الشكر في يوم الصيدلي المنوفي.",
+                highlights: [
+                    "تنظيم فعاليات التبادل الطلابي المحلي وحملات التبرع بالدم بالجامعة والقرى",
+                    "المشاركة البارزة في مؤتمر 'خطوة على الطريق' بالإسكندرية",
+                    "المشاركة في تنظيم احتفال 'يوم الصيدلي المنوفي'",
+                    "تكريم الجمعية بدرع شكر رسمي من عميد الكلية"
+                ],
+                board: [
+                    { role: "الرئيس", name: "أحمد النعناعي" },
+                    { role: "الأمين العام", name: "إيمان علاء الدين" },
+                    { role: "أمين الصندوق", name: "سارة كركيت" },
+                    { role: "الصحة العامة", name: "هادي محمد" },
+                    { role: "التعليم الصيدلي", name: "دينا داوود" },
+                    { role: "التبادل الطلابي", name: "عبد الله بكير" },
+                    { role: "العلاقات الداخلية", name: "إيمان عبد الكريم" },
+                    { role: "العلاقات الخارجية", name: "سارة الطويل" },
+                    { role: "التسويق", name: "نرمين عمران" },
+                    { role: "الإعلام والمطبوعات", name: "بسنت شفيق" },
+                    { role: "التنظيم واللوجيستي", name: "مارينا سمير" }
+                ]
+            },
+            y4: {
+                title: "🤝 2022 - 2023: التعاون المؤسسي والقوافل الطبية",
+                motto: "تحويل التحديات إلى إنجازات مجتمعية",
+                president: "دينا داوود",
+                secretary: "منال عاصم",
+                treasurer: "أحمد حيدر",
+                summary: "توقيع بروتوكول التعاون مع النقابة بشبين الكوم، إطلاق أول قافلة طبية بقرية أم صابر وتدشين مدونة Hoster وقناة اليوتيوب.",
+                highlights: [
+                    "إبرام بروتوكول تعاون رسمي مع نقابة الصيادلة بشبين الكوم",
+                    "إطلاق أول قافلة طبية لقرية 'أم صابر' وتوزيع 120 شنطة رمضان بكمشوش",
+                    "إطلاق مدونة Hoster الخاصة بالتبادل الطلابي والقناة الرسمية",
+                    "إنتاج أول Trailer رسمي للفعاليات في تاريخ الجمعية"
+                ],
+                board: [
+                    { role: "الرئيس", name: "دينا داوود" },
+                    { role: "الأمين العام", name: "منال عاصم" },
+                    { role: "أمين الصندوق", name: "أحمد حيدر" },
+                    { role: "الصحة العامة", name: "علي شحات" },
+                    { role: "التعليم الصيدلي", name: "زينب عبد الناصر" },
+                    { role: "التبادل الطلابي", name: "رحمة علامة" },
+                    { role: "العلاقات الداخلية", name: "إيمان عبد الكريم" },
+                    { role: "العلاقات الخارجية", name: "سارة البغدادي" },
+                    { role: "التسويق", name: "نرمين عمران" },
+                    { role: "الإعلام والمطبوعات", name: "هداء سعيد" },
+                    { role: "التنظيم واللوجيستي", name: "فاطمة ضاحي" }
+                ]
+            },
+            y5: {
+                title: "⚔️ 2023 - 2024: المعارك الكبرى والانتصار لأقوى الجنود",
+                motto: "لا تُعطى أصعب المعارك إلا لأقوى الجنود",
+                president: "هادي محمد",
+                secretary: "سعيد وحيد",
+                treasurer: "عبد الرحمن يحيى",
+                summary: "تنظيم مؤتمر PHocus وإطلاق حدث وعي والقافلة الثانية لـ 316 حالة واستضافة طالبة هندية بالتبادل الدولي والاحتفال بالذكرى الخماسية.",
+                highlights: [
+                    "تنظيم مؤتمر Congress ومؤتمر PHocus الأسطوري برعاية أكبر الشركات",
+                    "إطلاق حدث 'وعي' للتوعية النفسية والقافلة الطبية الثانية لـ 316 حالة",
+                    "أول استضافة دولية (SEP Hosting) لطالبة من الهند بمصنع Zeta Pharma",
+                    "الاحتفال التاريخي بالذكرى السنوية الخماسية للجمعية (5th Anniversary)"
+                ],
+                board: [
+                    { role: "الرئيس", name: "هادي محمد" },
+                    { role: "الأمين العام", name: "سعيد وحيد" },
+                    { role: "أمين الصندوق", name: "عبد الرحمن يحيى" },
+                    { role: "الصحة العامة", name: "محمود خيري" },
+                    { role: "التعليم الصيدلي", name: "سارة صالح" },
+                    { role: "التبادل الطلابي", name: "فاطمة ضاحي" },
+                    { role: "العلاقات الداخلية", name: "أماني مصطفى" },
+                    { role: "العلاقات الخارجية", name: "سمسمة طارق" },
+                    { role: "التسويق", name: "بسملة محمد" },
+                    { role: "الإعلام والمطبوعات", name: "منى أيمن" },
+                    { role: "التنظيم واللوجيستي", name: "ماري سمير" }
+                ]
+            }
+        };
+
+        // Master Board Members Array
+        let allBoardMembersMaster = [];
+        Object.keys(yearTimelineData).forEach(yearKey => {
+            const termName = yearKey === 'y1' ? '2019-2020' : yearKey === 'y2' ? '2020-2021' : yearKey === 'y3' ? '2021-2022' : yearKey === 'y4' ? '2022-2023' : '2023-2024';
+            yearTimelineData[yearKey].board.forEach(m => {
+                allBoardMembersMaster.push({
+                    name: m.name,
+                    role: m.role,
+                    term: termName
+                });
+            });
+        });
+
+        // Main Tab Switcher Logic
+        function switchMainTab(tabId) {
+            document.querySelectorAll('.main-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-medical-500', 'text-white', 'shadow');
+                btn.classList.add('text-slate-300');
+            });
+
+            const targetSection = document.getElementById('tab-' + tabId);
+            if (targetSection) targetSection.classList.remove('hidden');
+
+            const activeNavBtn = document.getElementById('nav-' + tabId);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('bg-medical-500', 'text-white', 'shadow');
+                activeNavBtn.classList.remove('text-slate-300');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Timeline Year Selector Logic
+        function selectYearTab(yearKey) {
+            document.querySelectorAll('.year-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-navy-900', 'text-white', 'shadow-md');
+                btn.classList.add('bg-white', 'text-slate-700');
+            });
+
+            const activeBtn = document.getElementById('yearBtn-' + yearKey);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-navy-900', 'text-white', 'shadow-md');
+                activeBtn.classList.remove('bg-white', 'text-slate-700');
+            }
+
+            const data = yearTimelineData[yearKey];
+            const container = document.getElementById('yearDetailContent');
+
+            let boardCardsHTML = data.board.map(m => `
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 hover:border-medical-500 transition-all">
+                    <span class="text-xs font-semibold text-medical-600 block">${m.role}</span>
+                    <span class="text-sm font-bold text-slate-900 font-cairo">${m.name}</span>
+                </div>
+            `).join('');
+
+            let highlightsHTML = data.highlights.map(h => `
+                <li class="flex items-start space-x-2 space-x-reverse text-xs sm:text-sm text-slate-700">
+                    <span class="text-tealAccent font-bold text-base">✓</span>
+                    <span>${h}</span>
+                </li>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="border-b border-slate-100 pb-4">
+                        <span class="text-xs font-bold text-tealAccent bg-teal-50 px-3 py-1 rounded-full">${data.title.split(':')[0]}</span>
+                        <h3 class="text-2xl font-bold font-cairo text-navy-900 mt-2">${data.title.split(':')[1] || data.title}</h3>
+                        <p class="text-sm text-slate-500 italic mt-1">"${data.motto}"</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-bold font-cairo text-slate-900 mb-2 text-base">📜 الملخص والنتائج</h4>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">${data.summary}</p>
+
+                            <h5 class="text-xs font-bold text-navy-900 uppercase tracking-wider mb-2">أبرز المحطات والإنجازات:</h5>
+                            <ul class="space-y-2">
+                                ${highlightsHTML}
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="font-bold font-cairo text-slate-900 mb-2 text-base">👥 هيئة المكتب (${data.president})</h4>
+                            <div class="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+                                ${boardCardsHTML}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Board Directory Filtering
+        function renderBoardCards(members) {
+            const grid = document.getElementById('boardGridContainer');
+            if (members.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400 text-sm">لم يتم العثور على أعضاء يطابقون نتائج البحث.</div>`;
+                return;
+            }
+
+            grid.innerHTML = members.map(m => `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-medical-500 transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold bg-navy-900 text-white px-2 py-0.5 rounded-full">${m.term}</span>
+                        <span class="text-xs text-medical-600 font-bold">${m.role}</span>
+                    </div>
+                    <div class="text-sm font-bold text-slate-900 font-cairo">${m.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterBoardMembers() {
+            const query = document.getElementById('boardSearchInput').value.toLowerCase();
+            const filtered = allBoardMembersMaster.filter(m => 
+                m.name.toLowerCase().includes(query) || m.role.toLowerCase().includes(query)
+            );
+            renderBoardCards(filtered);
+        }
+
+        function filterBoardTerm(term) {
+            document.querySelectorAll('.term-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-navy-900', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-700');
+            });
+            event.target.classList.add('bg-navy-900', 'text-white');
+            event.target.classList.remove('bg-slate-200', 'text-slate-700');
+
+            if (term === 'all') {
+                renderBoardCards(allBoardMembersMaster);
+            } else {
+                const filtered = allBoardMembersMaster.filter(m => m.term === term);
+                renderBoardCards(filtered);
+            }
+        }
+
+        // Font Size Adjuster
+        let ebookFontSize = 16;
+        function changeEbookFontSize(delta) {
+            ebookFontSize = Math.max(14, Math.min(22, ebookFontSize + delta));
+            document.getElementById('fullEbookReader').style.fontSize = ebookFontSize + 'px';
+        }
+
+        // Initialize Chart.js Data Visualizations
+        function initDataCharts() {
+            // Chart 1: 5-Year Growth Line Chart
+            const ctxGrowth = document.getElementById('growthChart').getContext('2d');
+            new Chart(ctxGrowth, {
+                type: 'line',
+                data: {
+                    labels: ['2019-2020', '2020-2021', '2021-2022', '2022-2023', '2023-2024'],
+                    datasets: [{
+                        label: 'عدد الفعاليات والأنشطة الأكاديمية والميدانية',
+                        data: [12, 18, 28, 45, 68],
+                        borderColor: '#0284C7',
+                        backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#0A2540',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return ' إجمالي الفعاليات: ' + context.parsed.y; }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#F1F5F9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Chart 2: Committee Focus Doughnut Chart
+            const ctxCommittee = document.getElementById('committeeChart').getContext('2d');
+            new Chart(ctxCommittee, {
+                type: 'doughnut',
+                data: {
+                    labels: ['الصحة العامة (Public Health)', 'التعليم الصيدلي (PE)', 'التبادل الطلابي (SEP)', 'العلاقات والتطوير المهني', 'الدعم اللوجيستي والإعلام'],
+                    datasets: [{
+                        data: [30, 25, 15, 15, 15],
+                        backgroundColor: ['#0284C7', '#0D9488', '#0A2540', '#D97706', '#64748B']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { family: 'Tajawal', size: 11 }, boxWidth: 12 }
+                        }
+                    }
+                }
+            });
+
+            // Chart 3: Quantitative Impact Bar Chart
+            const ctxImpact = document.getElementById('impactBarChart').getContext('2d');
+            new Chart(ctxImpact, {
+                type: 'bar',
+                data: {
+                    labels: ['أكياس الدم (حملة 2019)', 'حالات علاج القافلة الأولى', 'شنط كمشوش الرمضانية', 'حالات علاج القافلة الثانية (2024)', 'قسائم تدريب PHocus'],
+                    datasets: [{
+                        label: 'أعداد المستفيدين والمخرجات الميدانية',
+                        data: [150, 180, 120, 316, 500],
+                        backgroundColor: ['#0284C7', '#0D9488', '#D97706', '#0369A1', '#0A2540'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#F1F5F9' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Initialize App on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            selectYearTab('y1');
+            renderBoardCards(allBoardMembersMaster);
+            initDataCharts();
+        });
+    </script>
+</body>
+</html>
